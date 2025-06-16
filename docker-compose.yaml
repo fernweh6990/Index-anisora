@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  anisora:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    image: anisorav2:gpu-optimized
+    container_name: anisoraV2_gpu
+    working_dir: /workspace/anisoraV2_gpu
+    volumes:
+      - ./:/workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    command: /bin/bash -c "
+      python3 -m pip install -r req-fastvideo.txt && 
+      python3 -m pip install -r requirements.txt && 
+      python3 -m pip install -e . && 
+      streamlit run /workspace/app.py --server.port=8501 --server.address=0.0.0.0"
+
+    stdin_open: true
+    tty: true
+    ports:
+      - "8501:8501"
